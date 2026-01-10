@@ -279,7 +279,7 @@ export function useApproveLeave() {
       remarks 
     }: { 
       applicationId: string; 
-      action: "approve" | "reject"; 
+      action: "approve" | "reject" | "cancel"; 
       remarks?: string;
     }) => {
       const { data: application, error: fetchError } = await supabase
@@ -290,8 +290,9 @@ export function useApproveLeave() {
 
       if (fetchError) throw fetchError;
 
-      let newStatus: "pending" | "approved" | "rejected" = "pending";
+      let newStatus: "pending" | "approved" | "cancelled" | "rejected" = "pending";
       let nextApproverRole: "admin" | "hr" | "finance" | "manager" | "team_member" | null = null;
+        console.log("action1",action);
 
       if (action === "reject") {
         newStatus = "rejected";
@@ -299,7 +300,10 @@ export function useApproveLeave() {
         // Manager approval is final - no HR escalation needed
         newStatus = "approved";
         nextApproverRole = null;
-      }
+      }else if (action === "cancel") {
+        console.log("action",action);
+        newStatus = "cancelled";
+      } 
 
       const { error } = await supabase
         .from("leave_applications")
@@ -308,6 +312,7 @@ export function useApproveLeave() {
           current_approver_role: nextApproverRole,
         })
         .eq("id", applicationId);
+      console.log("error",error);
 
       if (error) throw error;
     },

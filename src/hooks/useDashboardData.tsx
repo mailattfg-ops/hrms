@@ -156,7 +156,7 @@ export function useDashboardPendingApprovals(limit: number = 5) {
   return useQuery({
     queryKey: ["dashboard-pending-approvals", employee?.id, role, limit],
     queryFn: async (): Promise<PendingApproval[]> => {
-      if (!employee || !role) return [];
+      if ((!employee && role !== "admin") || !role) return [];
 
       // For managers, first get their team member IDs
       let teamMemberIds: string[] = [];
@@ -196,11 +196,17 @@ export function useDashboardPendingApprovals(limit: number = 5) {
         .order("created_at", { ascending: true })
         .limit(limit);
 
+      console.log("hr or admin test",role);
+
       // Filter based on role
       if (role === "manager") {
+         if (!employee) return []; // Explicitly handle missing employee for manager
+         
         // For managers, only show leave requests from their direct reports
         query = query.in("employee_id", teamMemberIds);
-      } else if (role === "hr" || role === "admin") {
+      } else if (role === "hr") {
+        query = query.in("current_approver_role", ["manager"]);
+      }else if (role === "admin") {
         query = query.in("current_approver_role", ["hr", "manager"]);
       }
 
@@ -237,6 +243,6 @@ export function useDashboardPendingApprovals(limit: number = 5) {
         };
       });
     },
-    enabled: !!employee && !!role && ["manager", "hr", "admin"].includes(role),
+    enabled: (!!employee || role === "admin") && !!role && ["manager", "hr", "admin"].includes(role),
   });
 }

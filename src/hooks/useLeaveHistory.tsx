@@ -49,7 +49,8 @@ export function useLeaveHistory(
 
   const { role } = useAuth();
   const { data: employee } = useEmployee();
-
+  console.log("employeeemployee",employee);
+  
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
@@ -112,11 +113,14 @@ export function useLeaveHistory(
           .eq("reporting_manager_id", employee.id)
           .eq("is_active", true);
 
-        const ids = [employee.id, ...(team?.map(e => e.id) || [])];
+        const ids = [...(team?.map(e => e.id) || [])];
         query = query.in("employee_id", ids);
       } else if (currentRole !== "admin" && currentRole !== "hr") {
         if (!employee) return { data: [], count: 0 };
         query = query.eq("employee_id", employee.id);
+      }else if (currentRole === "hr") {
+        if (!employee) return { data: [], count: 0 };
+        query = query.neq("employee_id", employee.id);
       }
 
       /* ---------- optional filters ---------- */

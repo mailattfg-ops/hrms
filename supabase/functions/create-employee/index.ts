@@ -194,10 +194,10 @@ Deno.serve(async (req) => {
       // Check if user already exists
       if (authError.code === "email_exists") {
         console.log("User already exists, looking up existing user...");
-        
+
         // Find existing user by email
         const { data: existingUsers, error: listError } = await adminClient.auth.admin.listUsers();
-        
+
         if (listError) {
           console.error("Error listing users:", listError);
           return new Response(
@@ -207,7 +207,7 @@ Deno.serve(async (req) => {
         }
 
         const existingUser = existingUsers.users.find((u: { email: any; }) => u.email === email);
-        
+
         if (!existingUser) {
           return new Response(
             JSON.stringify({ error: "Could not find existing user with this email" }),
@@ -297,15 +297,15 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         employeeId: employee.id,
         tempPassword: isExistingUser ? null : tempPassword,
         emailSent: emailResult.success,
         isExistingUser,
-        message: isExistingUser 
+        message: isExistingUser
           ? "Employee record created and linked to existing user account."
-          : emailResult.success 
+          : emailResult.success
             ? "Employee created successfully. Welcome email sent."
             : "Employee created successfully. Share the credentials manually."
       }),

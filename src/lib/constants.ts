@@ -107,24 +107,25 @@ export const getNavigationItems = (role: AppRole) => {
   ];
 
   // My Leaves is only for non-admin/HR roles (they manage org-wide data)
-  if (!["admin", "hr"].includes(role)) {
+  if (!["admin"].includes(role)) {
     items.push({ label: "My Leaves", path: "/leaves", icon: "Calendar" });
   }
 
-  items.push({ label: "Calendar", path: "/calendar", icon: "CalendarDays" });
-  
-  // Leave History - available to all roles
-  items.push({ label: "Leave History", path: "/leave-history", icon: "History" });
+  // items.push({ label: "Calendar", path: "/calendar", icon: "CalendarDays" });
 
-  // items.push({ label: "Leave Management", path: "/calendar", icon: "CalendarDays" });
+  // // Leave History - available to all roles
+  // items.push({ label: "Leave History", path: "/leave-history", icon: "History" });
 
-  
+  if (["admin", "hr", "manager"].includes(role)) {
+    items.push({ label: "Leave Management", path: "/leave-management", icon: "CalendarDays" });
+  }
+
   // Holidays - available to all roles (read-only for non-admin/HR)
   items.push({ label: "Holidays", path: "/holidays", icon: "CalendarPlus" });
 
-  if (["admin", "hr", "manager"].includes(role)) {
-    items.push({ label: "Approvals", path: "/approvals", icon: "CheckCircle" });
-  }
+  // if (["admin", "hr", "manager"].includes(role)) {
+  //   items.push({ label: "Approvals", path: "/approvals", icon: "CheckCircle" });
+  // }
 
   if (["admin", "hr"].includes(role)) {
     items.push(

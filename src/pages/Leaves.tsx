@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Plus, Calendar, Clock, CheckCircle, XCircle, AlertCircle, ShieldAlert } from "lucide-react";
+import { Plus, Calendar, Clock, CheckCircle, XCircle, AlertCircle, ShieldAlert, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useMyLeaveApplications, useMyLeaveBalances, useLeaveTypes } from "@/hooks/useLeaves";
@@ -17,8 +17,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ApplyLeaveDialog } from "@/components/leaves/ApplyLeaveDialog";
 import { LEAVE_STATUS_COLORS } from "@/lib/constants";
+import { useToast } from "@/hooks/use-toast";
+import { usePendingApprovals, useApproveLeave } from "@/hooks/useLeaves";
+import { Textarea } from "@/components/ui/textarea";
+
 
 const statusIcons = {
   pending: Clock,
@@ -30,10 +42,17 @@ const statusIcons = {
 export default function Leaves() {
   const [isApplyDialogOpen, setIsApplyDialogOpen] = useState(false);
   const { role } = useAuth();
+  const { toast } = useToast();
   const { data: employee } = useEmployee();
   const { data: applications, isLoading: applicationsLoading } = useMyLeaveApplications();
   const { data: balances, isLoading: balancesLoading } = useMyLeaveBalances();
   const { data: leaveTypes } = useLeaveTypes();
+  console.log("applications",applications);
+  
+  const [selectedApplication, setSelectedApplication] = useState<string | null>(null);
+  const [actionType, setActionType] = useState<"approve" | "reject" | "cancel" | null>(null);
+  const [remarks, setRemarks] = useState("");
+  const approveLeave = useApproveLeave();
 
   const employeeGender = employee?.gender;
 
@@ -64,7 +83,7 @@ export default function Leaves() {
   }).filter(lt => lt.entitlement_days > 0 || lt.available > 0);
 
   // If Admin/HR, show a message redirecting to dashboard
-  if (role === "admin" || role === "hr") {
+  if (role === "admin") {
     return (
       <AppLayout>
         <div className="flex flex-col items-center justify-center py-24 text-center animate-fade-in">
@@ -81,6 +100,44 @@ export default function Leaves() {
       </AppLayout>
     );
   }
+
+  const handleAction = async () => {
+    if (!selectedApplication || !actionType) return;
+
+    try {
+      await approveLeave.mutateAsync({
+        applicationId: selectedApplication,
+        action: 'cancel',
+        remarks,
+      });
+
+      toast({
+        title: actionType === "approve" ? "Leave approved" : "Leave rejected",
+        description: `The leave request has been ${actionType === "approve" ? "approved" : "rejected"}.`,
+      });
+
+      // ✅ REFRESH TABLE DATA
+      // await refetch();
+
+      setSelectedApplication(null);
+      setActionType(null);
+      setRemarks("");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to process leave request",
+      });
+    }
+  };
+
+  const openActionDialog = (applicationId: string, action: "approve" | "reject") => {
+    console.log("applicationId",applicationId);
+    
+    setSelectedApplication(applicationId);
+    setActionType(action);
+    setRemarks("");
+  };
 
   return (
     <AppLayout>
@@ -177,6 +234,7 @@ export default function Leaves() {
                       <TableHead>Days</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Applied On</TableHead>
+                      {/* <TableHead>Actions</TableHead> */}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -214,6 +272,19 @@ export default function Leaves() {
                           <TableCell className="text-muted-foreground">
                             {format(new Date(app.created_at), "MMM d, yyyy")}
                           </TableCell>
+                          {app.status.slice(0) === "pending" && (
+                            <TableCell>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                                onClick={() => openActionDialog(app.id, "reject")}
+                              >
+                                <X className="mr-1 h-4 w-4" />
+                                Cancel
+                              </Button>
+                            </TableCell>
+                          )}
                         </TableRow>
                       );
                     })}
@@ -226,6 +297,57 @@ export default function Leaves() {
       </div>
 
       <ApplyLeaveDialog open={isApplyDialogOpen} onOpenChange={setIsApplyDialogOpen} />
+      {/* Action Confirmation Dialog */}
+      <Dialog 
+        open={!!selectedApplication && !!actionType} 
+        onOpenChange={() => {
+          setSelectedApplication(null);
+          setActionType(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Cancel Leave Request
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to Cancel this leave request
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Remarks (optional)</label>
+              <Textarea
+                placeholder="Add any comments or notes..."
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSelectedApplication(null);
+                setActionType(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant={actionType === "reject" ? "destructive" : "default"}
+              className={actionType === "cancel" ? "bg-success hover:bg-success/90" : ""}
+              onClick={handleAction}
+              disabled={approveLeave.isPending}
+            >
+              Cancel Request
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }

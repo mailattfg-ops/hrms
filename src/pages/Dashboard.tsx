@@ -14,6 +14,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
+import Autoplay from "embla-carousel-autoplay"
+import { useActiveAnnouncementBanners } from "@/hooks/useAnnouncementBanners";
+import { cn } from "@/lib/utils";
+import { Megaphone } from "lucide-react";
 
 function StatCardSkeleton() {
   return (
@@ -48,6 +59,7 @@ function getStatusBadgeVariant(status: string) {
 export default function Dashboard() {
   const { role } = useAuth();
   const { data: employee, isLoading: employeeLoading } = useEmployee();
+  const { data: banners } = useActiveAnnouncementBanners();
   
   const isAdminOrHR = role === "admin" || role === "hr";
   
@@ -90,6 +102,74 @@ export default function Dashboard() {
             }
           </p>
         </div>
+        {banners?.length > 0 && (
+          <div className="w-full py-6 p-0">
+            <Carousel
+              className="w-full mx-0 group overflow-hidden rounded-2xl"
+              opts={{
+                loop: true,
+                align: "start",
+                duration: 30,
+              }}
+              plugins={[
+                Autoplay({
+                  delay: 6000,
+                  stopOnInteraction: false,
+                }),
+              ]}
+            >
+              <CarouselContent className="h-20 md:h-24">
+                {banners.map((banner, index) => (
+                  <CarouselItem key={index} className="h-full">
+                    <div
+                      className={cn(
+                        "relative h-full w-full flex items-center px-6 md:px-12 overflow-hidden transition-all duration-500 rounded-2xl border ",
+                        banner.color === "yellow"
+                          ? "bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-amber-200 via-yellow-150 to-orange-200 text-amber-900"
+                          : "bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-slate-500 via-red-700 to-rose-700 text-white"
+                      )}
+                    >
+                      {/* Subtle Decorative "Glass" Overlay */}
+                      <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px]" />
+                      
+                      {/* Animated Light Sweep Effect */}
+                      <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
+
+                      <div className="relative z-10 flex items-center w-full gap-4 md:gap-6">
+                        {/* Announcement Icon with Pulse */}
+                        <div className="flex-shrink-0 relative">
+                          <div className={cn(
+                            "absolute inset-0 rounded-full animate-ping opacity-20",
+                            banner.color === "yellow" ? "bg-amber-400" : "bg-white"
+                          )} />
+                          <div className={cn(
+                            "relative p-2.5 rounded-xl backdrop-blur-md border",
+                            banner.color === "yellow" ? "bg-amber-200/50 border-amber-300" : "bg-white/10 border-white/20"
+                          )}>
+                            <Megaphone className="w-5 h-5 md:w-6 md:h-6" />
+                          </div>
+                        </div>
+
+                        {/* Content Area */}
+                        <div className="flex-grow">
+                          <span
+                            dangerouslySetInnerHTML={{ __html: banner.message }}
+                            className="block text-sm md:text-lg font-medium tracking-tight leading-snug
+                              [&_a]:decoration-rose-500 [&_a]:underline-offset-4 [&_a]:transition-colors
+                              [&_a]:font-bold [&_a:hover]:text-rose-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
+          </div>
+        )}
+
+        
+
 
         {/* Quick Stats - Different for Admin/HR vs regular users */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -538,7 +618,7 @@ export default function Dashboard() {
               </CardDescription>
             </div>
             <Button variant="ghost" size="sm" asChild>
-              <Link to={isAdminOrHR ? "/approvals" : "/leaves"} className="flex items-center gap-1">
+              <Link to={isAdminOrHR ? "/leave-management" : "/leaves"} className="flex items-center gap-1">
                 View all <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -627,7 +707,7 @@ export default function Dashboard() {
                 <CardDescription>Leave requests awaiting your approval</CardDescription>
               </div>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/approvals" className="flex items-center gap-1">
+                <Link to="/leave-management?status=pending" className="flex items-center gap-1">
                   View all <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>

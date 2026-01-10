@@ -164,16 +164,43 @@ export function AnnouncementSettings() {
 
             {/* Preview */}
             {data.message && (
-              <div className="space-y-2">
-                <Label className="text-sm text-muted-foreground">Preview:</Label>
-                <div
-                  className={cn(
-                    "overflow-hidden rounded-md py-2 text-sm font-medium",
-                    data.color === "yellow" ? "bg-yellow-500 text-yellow-950" : "bg-red-500 text-white"
-                  )}
-                >
-                  <div className="marquee-preview px-4">
-                    <span dangerouslySetInnerHTML={{ __html: data.message }} />
+              <div
+                className={cn(
+                  "relative h-full w-full flex items-center px-6 md:px-12 py-4 overflow-hidden transition-all duration-500 rounded-2xl border border-white/20 shadow-xl",
+                  data.color === "yellow"
+                    ? "bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-amber-200 via-yellow-150 to-orange-200 text-amber-900"
+                    : "bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-slate-500 via-red-700 to-rose-700 text-white"
+                )}
+              >
+                {/* Subtle Decorative "Glass" Overlay */}
+                <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px]" />
+                
+                {/* Animated Light Sweep Effect */}
+                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
+
+                <div className="relative z-10 flex items-center w-full gap-4 md:gap-6">
+                  {/* Announcement Icon with Pulse */}
+                  <div className="flex-shrink-0 relative">
+                    <div className={cn(
+                      "absolute inset-0 rounded-full animate-ping opacity-20",
+                      data.color === "yellow" ? "bg-amber-400" : "bg-white"
+                    )} />
+                    <div className={cn(
+                      "relative p-2.5 rounded-xl backdrop-blur-md border",
+                      data.color === "yellow" ? "bg-amber-200/50 border-amber-300" : "bg-white/10 border-white/20"
+                    )}>
+                      <Megaphone className="w-5 h-5 md:w-6 md:h-6" />
+                    </div>
+                  </div>
+
+                  {/* Content Area */}
+                  <div className="flex-grow">
+                    <span
+                      dangerouslySetInnerHTML={{ __html: data.message }}
+                      className="block text-sm md:text-lg font-medium tracking-tight leading-snug
+                        [&_a]:decoration-rose-500 [&_a]:underline-offset-4 [&_a]:transition-colors
+                        [&_a]:font-bold [&_a:hover]:text-rose-500"
+                    />
                   </div>
                 </div>
               </div>

@@ -32,7 +32,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <MarqueeBanner />
+        {/* <MarqueeBanner /> */}
         <AppHeader />
         <main className="flex-1 p-6">
           {children}

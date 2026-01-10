@@ -36,7 +36,8 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/leaves" element={<Leaves />} />
             <Route path="/calendar" element={<LeaveCalendar />} />
-            <Route path="/leave-history" element={<LeaveHistory />} />
+            {/* <Route path="/leave-management" element={<LeaveCalendar />} /> */}
+            <Route path="/leave-management" element={<LeaveHistory />} />
             <Route path="/approvals" element={<Approvals />} />
             <Route path="/employees" element={<Employees />} />
             <Route path="/profile/:employeeId" element={<EmployeeProfile />} />
