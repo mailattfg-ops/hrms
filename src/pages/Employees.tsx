@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Search, MoreHorizontal, Shield, UserCheck, Scale, Eye, Calendar, Pencil, Key } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Shield, UserCheck, Scale, Eye, Calendar, Pencil, Key, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmployees } from "@/hooks/useEmployee";
@@ -38,6 +38,7 @@ import { AssignManagerDialog } from "@/components/employees/AssignManagerDialog"
 import { AdjustBalanceDialog } from "@/components/employees/AdjustBalanceDialog";
 import { EditEmployeeDialog } from "@/components/employees/EditEmployeeDialog";
 import { ResetPasswordDialog } from "@/components/employees/ResetPasswordDialog";
+import { DeleteEmployeeDialog } from "@/components/employees/DeleteEmployeeDialog";
 
 export default function Employees() {
   const { role: currentUserRole } = useAuth();
@@ -49,6 +50,7 @@ export default function Employees() {
   const [balanceDialogEmployee, setBalanceDialogEmployee] = useState<typeof employees extends (infer T)[] | undefined ? T | null : never>(null);
   const [editDialogEmployee, setEditDialogEmployee] = useState<typeof employees extends (infer T)[] | undefined ? T | null : never>(null);
   const [resetPasswordEmployee, setResetPasswordEmployee] = useState<{ name: string; email: string } | null>(null);
+  const [deleteDialogEmployee, setDeleteDialogEmployee] = useState<typeof employees extends (infer T)[] | undefined ? T | null : never>(null);
 
   // Fetch all user roles
   const { data: allUserRoles } = useQuery({
@@ -297,6 +299,14 @@ export default function Employees() {
                                       <Key className="mr-2 h-4 w-4" />
                                       Reset Password
                                     </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      onClick={() => setDeleteDialogEmployee(employee)}
+                                      className="text-destructive focus:text-destructive"
+                                    >
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      Delete Employee
+                                    </DropdownMenuItem>
                                   </>
                                 )}
                               </DropdownMenuContent>
@@ -339,6 +349,11 @@ export default function Employees() {
         onOpenChange={(open) => !open && setResetPasswordEmployee(null)}
         employeeName={resetPasswordEmployee?.name || ""}
         employeeEmail={resetPasswordEmployee?.email || ""}
+      />
+      <DeleteEmployeeDialog
+        open={!!deleteDialogEmployee}
+        onOpenChange={(open) => !open && setDeleteDialogEmployee(null)}
+        employee={deleteDialogEmployee}
       />
     </AppLayout>
   );
