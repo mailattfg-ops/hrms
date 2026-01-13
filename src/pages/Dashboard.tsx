@@ -285,7 +285,7 @@ export default function Dashboard() {
               </Link>
             </Button>
             <Button variant="outline" className="h-auto py-4 flex flex-col gap-2" asChild>
-              <Link to="/leave-policies">
+              <Link to="/policies">
                 <FileText className="h-5 w-5" />
                 <span>Manage Leave Policies</span>
               </Link>

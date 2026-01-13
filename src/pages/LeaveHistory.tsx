@@ -128,7 +128,6 @@ export default function LeaveHistory() {
   };
 
   const openActionDialog = (applicationId: string, action: "approve" | "reject") => {
-    console.log("applicationId",applicationId);
     
     setSelectedApplication(applicationId);
     setActionType(action);

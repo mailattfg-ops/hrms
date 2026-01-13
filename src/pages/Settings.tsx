@@ -46,10 +46,10 @@ export default function Settings() {
             <FileText className="h-4 w-4" />
             <span className="hidden sm:inline">Audit Log</span>
           </TabsTrigger>
-          {/* <TabsTrigger value="email" className="gap-2">
+          <TabsTrigger value="email" className="gap-2">
             <Mail className="h-4 w-4" />
             <span className="hidden sm:inline">Email Setup</span>
-          </TabsTrigger> */}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="organization">
@@ -76,9 +76,9 @@ export default function Settings() {
           <AuditLogViewer />
         </TabsContent>
 
-        {/* <TabsContent value="email">
+        <TabsContent value="email">
           <EmailSetup />
-        </TabsContent> */}
+        </TabsContent>
       </Tabs>
     </div>
     </AppLayout>

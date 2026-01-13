@@ -271,28 +271,42 @@ export function useApplyLeave() {
 export function useApproveLeave() {
   const queryClient = useQueryClient();
   const { role } = useAuth();
+  const { data: currentUser } = useEmployee();
 
   return useMutation({
-    mutationFn: async ({ 
-      applicationId, 
-      action, 
-      remarks 
-    }: { 
-      applicationId: string; 
-      action: "approve" | "reject" | "cancel"; 
+    mutationFn: async ({
+      applicationId,
+      action,
+      remarks,
+    }: {
+      applicationId: string;
+      action: "approve" | "reject" | "cancel";
       remarks?: string;
     }) => {
+      // 1. Fetch the application to get details for the email
       const { data: application, error: fetchError } = await supabase
         .from("leave_applications")
-        .select("*")
+        .select(`
+          *,
+          employees (
+            profiles (
+              first_name,
+              last_name,
+              email
+            )
+          ),
+          leave_types (
+            name
+          )
+        `)
         .eq("id", applicationId)
         .single();
 
       if (fetchError) throw fetchError;
 
       let newStatus: "pending" | "approved" | "cancelled" | "rejected" = "pending";
-      let nextApproverRole: "admin" | "hr" | "finance" | "manager" | "team_member" | null = null;
-        console.log("action1",action);
+      let nextApproverRole: "admin" | "hr" | "finance" | "manager" | "team_member" | null =
+        null;
 
       if (action === "reject") {
         newStatus = "rejected";
@@ -300,21 +314,51 @@ export function useApproveLeave() {
         // Manager approval is final - no HR escalation needed
         newStatus = "approved";
         nextApproverRole = null;
-      }else if (action === "cancel") {
-        console.log("action",action);
+      } else if (action === "cancel") {
         newStatus = "cancelled";
-      } 
+      }
 
       const { error } = await supabase
         .from("leave_applications")
         .update({
           status: newStatus,
           current_approver_role: nextApproverRole,
+          // remarks: remarks // Add validation logic if remarks column exists
         })
         .eq("id", applicationId);
-      console.log("error",error);
 
       if (error) throw error;
+
+      // 2. Send Email Notification
+      if (action === "approve" || action === "reject") {
+        try {
+          const templateName = action === "approve" ? "Leave Approval" : "Leave Rejection";
+          const employeeName = `${application.employees?.profiles?.first_name} ${application.employees?.profiles?.last_name}`;
+          const managerName = currentUser?.profiles 
+            ? `${currentUser.profiles.first_name} ${currentUser.profiles.last_name}` 
+            : "Manager";
+
+          await supabase.functions.invoke("send-email", {
+            body: {
+              to: application.employees?.profiles?.email,
+              templateName: templateName,
+              data: {
+                employee_name: employeeName,
+                leave_type: application.leave_types?.name || "Leave",
+                leave_start_date: application.start_date,
+                leave_end_date: application.end_date,
+                days_count: application.days_count.toString(),
+                manager_name: managerName,
+                status: action,
+                remarks: remarks || "",
+              },
+            },
+          });
+        } catch (emailError) {
+          console.error("Failed to send email notification:", emailError);
+          // Don't throw error here, as the database update was successful
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-approvals"] });

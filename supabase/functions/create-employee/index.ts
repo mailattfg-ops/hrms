@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
+// @ts-ignore
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 async function sendWelcomeEmail(
@@ -93,7 +93,7 @@ async function sendWelcomeEmail(
     return { success: false, error };
   }
 }
-
+// @ts-ignore
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -111,8 +111,11 @@ Deno.serve(async (req) => {
     }
 
     // Create a client with the caller's token to verify their role
+    // @ts-ignore
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    // @ts-ignore
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    // @ts-ignore
     const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const callerClient = createClient(supabaseUrl, supabaseAnonKey, {
@@ -206,7 +209,9 @@ Deno.serve(async (req) => {
           );
         }
 
-        const existingUser = existingUsers.users.find((u: { email: any; }) => u.email === email);
+        const existingUser = existingUsers.users.find(
+          (u: any) => u.email === email
+        );
 
         if (!existingUser) {
           return new Response(

@@ -49,7 +49,6 @@ export function useLeaveHistory(
 
   const { role } = useAuth();
   const { data: employee } = useEmployee();
-  console.log("employeeemployee",employee);
   
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;

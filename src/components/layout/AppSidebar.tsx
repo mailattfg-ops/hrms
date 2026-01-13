@@ -57,7 +57,9 @@ export function AppSidebar() {
   // Build navigation with My Profile at the top
   const allNavItems = [
     { label: "Dashboard", path: "/dashboard", icon: "LayoutDashboard" },
-    ...(employee ? [{ label: "My Profile", path: `/profile/${employee.id}`, icon: "UserCircle" }] : []),
+    ...(role !== "admin"
+    ? [{ label: "My Profile", path: `/profile/${employee.id}`, icon: "UserCircle" }]
+    : []),
     ...navItems.filter(item => item.path !== "/dashboard"), // exclude dashboard since we added it first
     ...(showMyTeam ? [{ label: "My Team", path: "/my-team", icon: "UsersRound" }] : []),
   ];

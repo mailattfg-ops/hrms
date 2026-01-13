@@ -58,8 +58,8 @@ export interface Employee {
 }
 
 export function useEmployee() {
-  const { user } = useAuth();
-
+  const { user,role } = useAuth();
+  // if (role !== "admin" ) {return null;}
   return useQuery({
     queryKey: ["employee", user?.id],
     queryFn: async (): Promise<Employee | null> => {
@@ -85,7 +85,7 @@ export function useEmployee() {
         .eq("user_id", user.id)
         .single();
 
-      if (error) {
+      if (error && role !== "admin") {
         console.error("Error fetching employee:", error);
         return null;
       }

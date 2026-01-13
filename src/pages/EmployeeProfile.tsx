@@ -220,7 +220,7 @@ interface EmployeeProfile {
 
 export default function EmployeeProfile() {
   const { employeeId } = useParams<{ employeeId: string }>();
-  const { user } = useAuth();
+  const { user,role } = useAuth();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<EmployeeProfile>>({});
@@ -231,25 +231,59 @@ export default function EmployeeProfile() {
     queryKey: ["employee-profile", employeeId],
     queryFn: async (): Promise<EmployeeProfile | null> => {
       if (!employeeId) return null;
+      console.log("employeeId", employeeId);
+      
+      let employeeData;
+      let error;
 
-      const { data: employeeData, error } = await supabase
-        .from("employees")
-        .select(`
-          *,
-          profiles!employees_user_id_profiles_fkey (
-            first_name,
-            last_name,
-            email,
-            phone,
-            avatar_url
-          ),
-          departments (
-            id,
-            name
-          )
-        `)
-        .eq("id", employeeId)
-        .maybeSingle();
+      // if (role === "admin") {
+      //   // 🔹 Admin → profile table
+      //   const result = await supabase
+      //     .from("profiles")
+      //     .select(`
+      //       id,
+      //       first_name,
+      //       last_name,
+      //       email,
+      //       phone,
+      //       avatar_url
+      //     `)
+      //     .eq("id", employeeId)
+      //     .maybeSingle();
+
+      //   employeeData = result.data;
+      //   error = result.error;
+      //   console.log("employeeData", employeeData);
+      //   console.log("error", error);
+        
+
+      // } else {
+      //   // 🔹 Employee → employees table
+        const result = await supabase
+          .from("employees")
+          .select(`
+            *,
+            profiles!employees_user_id_profiles_fkey (
+              first_name,
+              last_name,
+              email,
+              phone,
+              avatar_url
+            ),
+            departments (
+              id,
+              name
+            )
+          `)
+          .eq("id", employeeId)
+          .maybeSingle();
+
+        employeeData = result.data;
+        error = result.error;
+      // }
+
+      if (error) throw error;
+
 
       if (error) {
         console.error("Error fetching employee:", error);

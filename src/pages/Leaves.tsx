@@ -47,7 +47,6 @@ export default function Leaves() {
   const { data: applications, isLoading: applicationsLoading } = useMyLeaveApplications();
   const { data: balances, isLoading: balancesLoading } = useMyLeaveBalances();
   const { data: leaveTypes } = useLeaveTypes();
-  console.log("applications",applications);
   
   const [selectedApplication, setSelectedApplication] = useState<string | null>(null);
   const [actionType, setActionType] = useState<"approve" | "reject" | "cancel" | null>(null);
@@ -131,9 +130,7 @@ export default function Leaves() {
     }
   };
 
-  const openActionDialog = (applicationId: string, action: "approve" | "reject") => {
-    console.log("applicationId",applicationId);
-    
+  const openActionDialog = (applicationId: string, action: "approve" | "reject") => {    
     setSelectedApplication(applicationId);
     setActionType(action);
     setRemarks("");

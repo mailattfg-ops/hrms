@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Save, Eye, Variable, Bold, Italic, Link, List, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 import {
   Dialog,
@@ -62,6 +62,23 @@ const TemplateEditorModal = ({ open, onOpenChange, template, onSave }: TemplateE
       body: "",
     }
   );
+
+  useEffect(() => {
+    if (open) {
+      if (template) {
+        setFormData(template);
+      } else {
+        setFormData({
+          name: "",
+          subject: "",
+          category: "General",
+          status: "draft",
+          body: "",
+        });
+      }
+    }
+  }, [template, open]);
+
   const [activeTab, setActiveTab] = useState("edit");
 
   const insertVariable = (variable: string, field: "subject" | "body") => {
