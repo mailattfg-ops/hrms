@@ -283,6 +283,10 @@ export function useApproveLeave() {
       action: "approve" | "reject" | "cancel";
       remarks?: string;
     }) => {
+      // 1️⃣ Get access token here
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session) throw new Error("User is not logged in");
+      const accessToken = sessionData.session.access_token;
       // 1. Fetch the application to get details for the email
       const { data: application, error: fetchError } = await supabase
         .from("leave_applications")
@@ -331,17 +335,19 @@ export function useApproveLeave() {
 
       // 2. Send Email Notification
       if (action === "approve" || action === "reject") {
+        const templateName = action === "approve" ? "Leave Approval" : "Leave Rejection";
+        const employeeName = `${application.employees?.profiles?.first_name} ${application.employees?.profiles?.last_name}`;
+        const managerName = role === "manager" ? "HR" : "Manager"; // or get from currentUser if available
         try {
-          const templateName = action === "approve" ? "Leave Approval" : "Leave Rejection";
-          const employeeName = `${application.employees?.profiles?.first_name} ${application.employees?.profiles?.last_name}`;
-          const managerName = currentUser?.profiles 
-            ? `${currentUser.profiles.first_name} ${currentUser.profiles.last_name}` 
-            : "Manager";
-
-          await supabase.functions.invoke("send-email", {
-            body: {
+          const res = await fetch("https://dwbszgctmpbipprzconx.supabase.co/functions/v1/send-email", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${accessToken}`, // ✅ pass token here
+            },
+            body: JSON.stringify({
               to: application.employees?.profiles?.email,
-              templateName: templateName,
+              templateName,
               data: {
                 employee_name: employeeName,
                 leave_type: application.leave_types?.name || "Leave",
@@ -352,11 +358,15 @@ export function useApproveLeave() {
                 status: action,
                 remarks: remarks || "",
               },
-            },
+            }),
           });
-        } catch (emailError) {
-          console.error("Failed to send email notification:", emailError);
-          // Don't throw error here, as the database update was successful
+
+          if (!res.ok) {
+            const errorData = await res.json();
+            console.error("Email failed:", errorData);
+          }
+        } catch (err) {
+          console.error("Failed to send email:", err);
         }
       }
     },

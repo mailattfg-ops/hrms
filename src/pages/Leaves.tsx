@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { format } from "date-fns";
+import { format, isBefore, startOfDay } from "date-fns";
 import { Plus, Calendar, Clock, CheckCircle, XCircle, AlertCircle, ShieldAlert, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -111,8 +111,8 @@ export default function Leaves() {
       });
 
       toast({
-        title: actionType === "approve" ? "Leave approved" : "Leave rejected",
-        description: `The leave request has been ${actionType === "approve" ? "approved" : "rejected"}.`,
+        title: actionType === "approve" ? "Leave approved" : actionType === "reject" ? "Leave rejected" : "Leave cancelled",
+        description: `The leave request has been ${actionType === "approve" ? "approved" : actionType === "reject" ? "rejected" : "cancelled"}.`,
       });
 
       // ✅ REFRESH TABLE DATA
@@ -130,7 +130,7 @@ export default function Leaves() {
     }
   };
 
-  const openActionDialog = (applicationId: string, action: "approve" | "reject") => {    
+  const openActionDialog = (applicationId: string, action: "approve" | "reject" | "cancel") => {    
     setSelectedApplication(applicationId);
     setActionType(action);
     setRemarks("");
@@ -269,13 +269,13 @@ export default function Leaves() {
                           <TableCell className="text-muted-foreground">
                             {format(new Date(app.created_at), "MMM d, yyyy")}
                           </TableCell>
-                          {app.status.slice(0) === "pending" && (
+                          {(app.status === "pending") && (
                             <TableCell>
                               <Button
                                 variant="outline"
                                 size="sm"
                                 className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                                onClick={() => openActionDialog(app.id, "reject")}
+                                onClick={() => openActionDialog(app.id, "cancel")}
                               >
                                 <X className="mr-1 h-4 w-4" />
                                 Cancel
