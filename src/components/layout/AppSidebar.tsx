@@ -62,6 +62,7 @@ export function AppSidebar() {
   const allNavItems = [
     { label: "Dashboard", path: "/dashboard", icon: "LayoutDashboard" },
     { label: "My Profile", path: `/profile/${employee?.id || user?.id}`, icon: "UserCircle" },
+    { label: "Task", path: "/task-management", icon: "Package" },
     { label: "Payroll", path: "/payroll", icon: "DollarSign" },
     { label: "IMS", path: "/ims", icon: "Package" },
     ...navItems.filter(item => item.path !== "/dashboard"), // exclude dashboard since we added it first

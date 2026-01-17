@@ -22,6 +22,7 @@ import MyTeam from "./pages/MyTeam";
 import NotFound from "./pages/NotFound";
 import PayrollDashboard from "./modules/payroll/pages/PayrollDashboard";
 import IMSDashboard from "./modules/ims/pages/IMSDashboard";
+import TaskDashboard from "./modules/taskManagement/pages/taskDashboard";
 
 const queryClient = new QueryClient();
 
@@ -50,8 +51,9 @@ const App = () => (
             <Route path="/settings" element={<Settings />} />
             <Route path="/my-team" element={<MyTeam />} />
             {/* Modules */}
-            <Route path="/payroll/*" element={<PayrollDashboard />} />
-            <Route path="/ims/*" element={<IMSDashboard />} />
+            <Route path="/payroll" element={<PayrollDashboard />} />
+            <Route path="/ims" element={<IMSDashboard />} />
+            <Route path="/task-management" element={<TaskDashboard />} />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
